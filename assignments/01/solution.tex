@@ -1,0 +1,128 @@
+\documentclass{article}
+\pagestyle{empty}
+\usepackage{amsmath, amsfonts,amsthm}
+\usepackage[margin=1.5in]{geometry}
+
+\let\endtitlepage\relax
+\def\duedate{January 15, 2015}
+\def\class{IFT6266}
+\def\title{First assignment - Solution}
+
+\begin{document}
+
+%------------------------------------------------------------------------------
+%                                    TITLE
+%------------------------------------------------------------------------------
+\begin{titlepage}
+\begin{center}
+\begin{minipage}{0.5\textwidth}
+\begin{flushleft} \large
+\class
+\end{flushleft}
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+\begin{flushright} \large
+\duedate
+\end{flushright}
+\end{minipage}
+\vspace{1cm}
+\Large \textbf{\title}
+\end{center}
+\end{titlepage}
+
+%------------------------------------------------------------------------------
+%                                    BODY
+%------------------------------------------------------------------------------
+
+\subsection*{Problem setting}
+
+Let
+\begin{equation}
+    \mathbf{x} = [x_1, \ldots, x_N]
+\end{equation}
+be a row vector of features and let
+\begin{equation}
+    \mathbf{t} = [t_1, \ldots, t_C]
+\end{equation}
+be a one-hot encoded row vector corresponding to the class of $\mathbf{x}$,
+\emph{i.e.}
+\begin{equation}
+t_k \in \{0, 1\} \quad \forall k
+\end{equation}
+and
+\begin{equation}
+    \sum_{k=1}^C t_k = 1
+\end{equation}
+such that $t_k = 1$ if $\mathbf{x}$ belongs to class $k$.
+
+Let $\mathbf{W}$ be a $N \times H$ matrix, $\mathbf{V}$ be a $H \times C$
+matrix, $\mathbf{b}$ be a $H$-dimensional row vector and $\mathbf{d}$ be a
+$C$-dimensional row vector.
+
+We define a one-hidden-layer MLP classifier as follows: let
+\begin{equation}
+    \mathbf{h} = \sigma(\mathbf{X}^T\mathbf{W} + \mathbf{b})
+\end{equation}
+where
+\begin{equation}
+    \sigma(z) = \frac{1}{1 + e^{-z}}
+\end{equation}
+is the sigmoid elementwise nonlinearity, and let
+\begin{equation}
+    \mathbf{y} = \textrm{softmax}(\mathbf{h}^T\mathbf{V} + \mathbf{d})
+\end{equation}
+where
+\begin{equation}
+    \textrm{softmax}(\mathbf{z})
+    = \frac{e^{\mathbf{z}}}{e^{\mathbf{z}} \cdot \mathbf{1}}
+    = \frac{e^{\mathbf{z}}}{\sum_i e^{z_i}}
+\end{equation}
+is a normalized version of the exponential elementwise nonlinearity. Finally,
+let
+\begin{equation}
+    \mathcal{L}
+    = -\mathbf{t} \cdot \log \mathbf{y}
+    = - \sum_{k=1}^C t_k \log y_k
+\end{equation}
+
+\subsection*{Useful derivatives}
+
+The derivative of the sigmoid function with respect to its argument is
+\begin{equation}
+\begin{split}
+    \frac{d}{dz}\sigma(z)
+    &= \frac{d}{dz}(1 + e^{-z})^{-1} \\
+    &= -(1 + e^{-z})^{-2} . -e^{-z} \\
+    &= \frac{1}{1 + e^{-z}} \frac{e^{-z} + 1 - 1}{1 + e^{-z}} \\
+    &= \frac{1}{1 + e^{-z}} \left(1 - \frac{1}{1 + e^{-z}}\right) \\
+    &= \sigma(z)(1 - \sigma(z))
+\end{split}
+\end{equation}
+
+The partial derivatives of the softmax function
+$\mathbf{s} = \textrm{softmax}(\mathbf{z})$ with respect to its inputs is
+\begin{equation}
+\begin{split}
+    \frac{\partial s_i}{\partial z_j}
+    &= \frac{\partial}{\partial z_j} \frac{e^{z_i}}{\sum_k e^{z_k}} \\
+    &= \frac{\delta_{i,j} e^{z_i} - e^{z_i}e^{z_j}}
+            {\left(\sum_k e^{z_k}\right)^2} \\
+    &=  s_i (\delta_{i,j} - s_j) \\
+\end{split}
+\end{equation}
+
+\subsection*{Partial derivatives}
+
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial y_k}
+    = \frac{\partial}{\partial y_k} \sum_{r=1}^C - t_r \log y_r
+    = -\frac{t_k}{y_k}
+\end{equation}
+
+\begin{equation}
+    \frac{\partial y_k}{\partial h_j}
+    = \frac{\partial}{\partial y_k} \sum_{r=1}^C - t_r \log y_r
+    = -\frac{t_k}{y_k}
+\end{equation}
+
+\end{document}
