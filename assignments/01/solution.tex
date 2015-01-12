@@ -85,9 +85,9 @@ let
     = - \sum_{k=1}^C t_k \log y_k
 \end{equation}
 
-\subsection*{Useful derivatives}
+\subsection*{Function derivatives}
 
-The derivative of the sigmoid function with respect to its argument is
+\subsubsection*{Sigmoid}
 \begin{equation}
 \begin{split}
     \frac{d}{dz}\sigma(z)
@@ -99,6 +99,7 @@ The derivative of the sigmoid function with respect to its argument is
 \end{split}
 \end{equation}
 
+\subsubsection*{Softmax}
 The partial derivatives of the softmax function
 $\mathbf{s} = \textrm{softmax}(\mathbf{z})$ with respect to its inputs is
 \begin{equation}
@@ -111,18 +112,147 @@ $\mathbf{s} = \textrm{softmax}(\mathbf{z})$ with respect to its inputs is
 \end{split}
 \end{equation}
 
-\subsection*{Partial derivatives}
+\subsection*{Scalar derivatives}
 
+\subsubsection*{Derivatives with respect to $\mathbf{y}$}
 \begin{equation}
     \frac{\partial \mathcal{L}}{\partial y_k}
     = \frac{\partial}{\partial y_k} \sum_{r=1}^C - t_r \log y_r
     = -\frac{t_k}{y_k}
 \end{equation}
 
+\subsubsection*{Derivatives with respect to $\mathbf{h}$}
 \begin{equation}
+\begin{split}
     \frac{\partial y_k}{\partial h_j}
-    = \frac{\partial}{\partial y_k} \sum_{r=1}^C - t_r \log y_r
-    = -\frac{t_k}{y_k}
+    &= \frac{\partial}{\partial h_j}
+       \frac{\exp(\sum_{s=1}^H h_s V_{s,k} + d_k)}
+            {\sum_{r=1}^C \exp(\sum_{s=1}^H h_s V_{s,k} + d_r)} \\
+    &= \frac{\exp(\sum_{s=1}^H h_s V_{s,k} + d_k) V_{j,k}
+             \left[\sum_{r=1}^C \exp(\sum_{s=1}^H h_s V_{s,k} + d_r)\right]}
+            {\left(\sum_{r=1}^C \exp(\sum_{s=1}^H h_s V_{s,k} + d_r)\right)^2} \\
+    &- \frac{\exp(\sum_{s=1}^H h_s V_{s,k} + d_k)
+             \left[\sum_{r=1}^C \exp(\sum_{s=1}^H h_s V_{s,k} + d_r) V_{j,r}\right]}
+            {\left(\sum_{r=1}^C \exp(\sum_{s=1}^H h_s V_{s,k} + d_r)\right)^2} \\
+    &= y_k V_{j,k} - y_k \sum_{r=1}^C y_r V_{j,r} \\
+\end{split}
+\end{equation}
+This means
+\begin{equation}
+\begin{split}
+    \frac{\partial \mathcal{L}}{\partial h_j}
+    &= \sum_{k=1}^C \frac{\partial \mathcal{L}}{\partial y_k}
+                    \frac{\partial y_k}{\partial h_j} \\
+    &= \sum_{k=1}^C -t_k \left(V_{j,k} - \sum_{r=1}^C y_r V_{j,r} \right) \\
+    &= \sum_{k=1}^C -t_k V_{j,k} +
+       \left[\sum_{k=1}^C t_k \right]\left[\sum_{r=1}^C y_r V_{j,r} \right] \\
+    &= \sum_{k=1}^C -t_k V_{j,k} +
+       \sum_{r=1}^C y_r V_{j,r} \quad \textrm{(because $\sum_k t_k
+       = 1$ by definition)}\\
+    &= \sum_{k=1}^C V_{j,k}(y_k - t_k) \\
+\end{split}
+\end{equation}
+
+\subsubsection*{Derivatives with respect to $\mathbf{V}$}
+\begin{equation}
+\begin{split}
+    \frac{\partial y_k}{\partial V_{j,r}}
+    &= y_k (\delta_{k,r} - y_r) \frac{\partial}{\partial V_{j,r}}
+       \left(\sum_{s=1}^H h_s V_{s,r} + d_r \right)\\
+    &= y_k (\delta_{k,r} - y_r) h_j \\
+\end{split}
+\end{equation}
+This means
+\begin{equation}
+\begin{split}
+    \frac{\partial \mathcal{L}}{\partial V_{j,r}}
+    &= \sum_{k=1}^C \frac{\partial \mathcal{L}}{\partial y_k}
+                    \frac{\partial y_k}{\partial V_{j,r}} \\
+    &= \sum_{k=1}^C -t_k (\delta_{k,r} - y_r) h_j \\
+    &= \left[\sum_{k=1}^C t_k \right]y_r h_j - t_r h_j\\
+    &= (y_r - t_r)h_j \quad \textrm{(because $\sum_k t_k
+       = 1$ by definition)} \\
+\end{split}
+\end{equation}
+
+\subsubsection*{Derivatives with respect to $\mathbf{d}$}
+\begin{equation}
+\begin{split}
+    \frac{\partial y_k}{\partial d_r}
+    &= y_k (\delta_{k,r} - y_r) \frac{\partial}{\partial d_r}
+       \left(\sum_{s=1}^H h_s V_{s,r} + d_r \right)\\
+    &= y_k (\delta_{k,r} - y_r) \\
+\end{split}
+\end{equation}
+This means
+\begin{equation}
+\begin{split}
+    \frac{\partial \mathcal{L}}{\partial d_r}
+    &= \sum_{k=1}^C \frac{\partial \mathcal{L}}{\partial y_k}
+                    \frac{\partial y_k}{\partial d_r} \\
+    &= \sum_{k=1}^C -t_k (\delta_{k,r} - y_r)\\
+    &= \left[\sum_{k=1}^C t_k \right]y_r - t_r \\
+    &= y_r - t_r \quad \textrm{(because $\sum_k t_k = 1$ by definition)} \\
+\end{split}
+\end{equation}
+
+\subsubsection*{Derivatives with respect to $\mathbf{W}$}
+\begin{equation}
+\begin{split}
+    \frac{\partial h_j}{\partial W_{i,j}}
+    &= h_j (1 - h_j) \frac{\partial}{\partial W_{i,j}}
+       \left(\sum_{s=1}^A x_s W_{s,j} + b_j \right)\\
+    &= h_j (1 - h_j) x_i \\
+\end{split}
+\end{equation}
+This means
+\begin{equation}
+\begin{split}
+    \frac{\partial \mathcal{L}}{\partial W_{i,j}}
+    &= \frac{\partial \mathcal{L}}{\partial h_j}
+       \frac{\partial h_j}{\partial W_{i,j}} \\
+    &= \sum_{k=1}^C V_{j,k}(y_k - t_k) h_j (1 - h_j) x_i \\
+\end{split}
+\end{equation}
+
+\subsubsection*{Derivatives with respect to $\mathbf{b}$}
+\begin{equation}
+\begin{split}
+    \frac{\partial h_j}{\partial b_j}
+    &= h_j (1 - h_j) \frac{\partial}{\partial b_j}
+       \left(\sum_{s=1}^A x_s W_{s,j} + b_j \right)\\
+    &= h_j (1 - h_j) \\
+\end{split}
+\end{equation}
+This means
+\begin{equation}
+\begin{split}
+    \frac{\partial \mathcal{L}}{\partial b_j}
+    &= \frac{\partial \mathcal{L}}{\partial h_j}
+       \frac{\partial h_j}{\partial b_j} \\
+    &= \sum_{k=1}^C V_{j,k}(y_k - t_k) h_j (1 - h_j) \\
+\end{split}
+\end{equation}
+
+\subsection*{Matrix and vector derivatives}
+
+From previous results, it is straightforward to verify that
+
+\begin{equation}
+\begin{split}
+    \frac{\partial \mathcal{L}}{\partial \mathbf{V}} &=
+        (\mathbf{y} - \mathbf{t})^T\mathbf{h}, \\
+    \frac{\partial \mathcal{L}}{\partial \mathbf{d}} &=
+        \mathbf{y} - \mathbf{t}, \\
+    \frac{\partial \mathcal{L}}{\partial \mathbf{W}} &=
+        \left[
+            (\mathbf{y} - \mathbf{t}) \mathbf{V}^T
+            \odot \mathbf{h} \odot (\mathbf{1} - \mathbf{h})
+        \right]^T \mathbf{x}, \\
+    \frac{\partial \mathcal{L}}{\partial \mathbf{b}} &=
+        (\mathbf{y} - \mathbf{t}) \mathbf{V}^T
+        \odot \mathbf{h} \odot (\mathbf{1} - \mathbf{h}) \\
+\end{split}
 \end{equation}
 
 \end{document}
