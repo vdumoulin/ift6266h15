@@ -360,7 +360,8 @@
         \item[TensorVariable]{Its value is unspecified at graph creation and
                               can change from one call of the compiled function
                               to another (\emph{e.g.} $x$ and $y$ in
-                              $y = 3x - 2$)}
+                              $y = 3x - 2$). \textbf{Not persistent across
+                              function calls}}
         \item[TensorConstant]{Its value is specified at graph creation and
                               does \textbf{not} change from one call of the
                               compiled funtion to another (\emph{e.g.} $3$ and
@@ -370,7 +371,8 @@
                                     compiled function to another (\emph{e.g.}
                                     $a$ and $b$ in $y = ax + b$ in a regression
                                     setting where some $x$ and $y$ pairs have
-                                    been observed)}
+                                    been observed). \textbf{Persistent across
+                                    fuction calls}}
     \end{description}
     \end{block}
 \end{frame}
@@ -458,7 +460,7 @@ print [f(1, 5)) for i in xrange(10)]
 % For more information
 %------------------------------------------------------------------------------
 \begin{frame}
-    \frametitle{Going further}
+    \frametitle{Theano primer}
     \begin{alertblock}{Going further: online Theano tutorial}
     \url{http://deeplearning.net/software/theano/tutorial/index.html\#tutorial}
     \end{alertblock}
