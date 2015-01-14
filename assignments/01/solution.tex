@@ -1,0 +1,260 @@
+\documentclass{article}
+\pagestyle{empty}
+\usepackage{amsmath, amsfonts,amsthm}
+\usepackage[margin=1.5in]{geometry}
+
+\let\endtitlepage\relax
+\def\duedate{January 15, 2015}
+\def\class{IFT6266}
+\def\title{First assignment - Solution}
+
+\begin{document}
+
+%------------------------------------------------------------------------------
+%                                    TITLE
+%------------------------------------------------------------------------------
+\begin{titlepage}
+\begin{center}
+\begin{minipage}{0.5\textwidth}
+\begin{flushleft} \large
+\class
+\end{flushleft}
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+\begin{flushright} \large
+\duedate
+\end{flushright}
+\end{minipage}
+\vspace{1cm}
+\Large \textbf{\title}
+\end{center}
+\end{titlepage}
+
+%------------------------------------------------------------------------------
+%                                    BODY
+%------------------------------------------------------------------------------
+
+\section*{Problem setting}
+
+\subsection*{Observations}
+
+Let
+\begin{equation}
+    \mathbf{x} = [x_1, \ldots, x_N]
+\end{equation}
+be a row vector of features and let
+\begin{equation}
+    \mathbf{t} = [t_1, \ldots, t_C]
+\end{equation}
+be a one-hot encoded row vector corresponding to the class of $\mathbf{x}$,
+\emph{i.e.}
+\begin{equation}
+t_k \in \{0, 1\} \quad \forall k
+\end{equation}
+and
+\begin{equation}
+    \sum_{k=1}^C t_k = 1
+\end{equation}
+such that $t_k = 1$ if and only if $\mathbf{x}$ belongs to class $k$.
+
+\subsection*{Model}
+
+Let $\mathbf{W}$ be a $N \times H$ matrix, $\mathbf{V}$ be a $H \times C$
+matrix, $\mathbf{b}$ be a $H$-dimensional row vector and $\mathbf{d}$ be a
+$C$-dimensional row vector.
+
+We define a one-hidden-layer MLP classifier as follows: let
+\begin{equation}
+    \mathbf{h} = \sigma(\mathbf{x}\mathbf{W} + \mathbf{b})
+\end{equation}
+where
+\begin{equation}
+    \sigma(z) = \frac{1}{1 + e^{-z}}
+\end{equation}
+is the sigmoid elementwise nonlinearity, and let
+\begin{equation}
+    \mathbf{y} = \textrm{softmax}(\mathbf{h}\mathbf{V} + \mathbf{d})
+\end{equation}
+where
+\begin{equation}
+    \textrm{softmax}(\mathbf{z})
+    = \frac{e^{\mathbf{z}}}{e^{\mathbf{z}} \cdot \mathbf{1}}
+    = \frac{e^{\mathbf{z}}}{\sum_i e^{z_i}}
+\end{equation}
+is a normalized version of the exponential elementwise nonlinearity. Finally,
+let
+\begin{equation}
+    \mathcal{L}
+    = -\mathbf{t} \cdot \log \mathbf{y}
+    = - \sum_{k=1}^C t_k \log y_k
+\end{equation}
+be the loss function of the MLP classifier.
+
+\section*{Solution}
+
+\subsection*{Function derivatives}
+
+\subsubsection*{Sigmoid}
+
+\begin{equation}
+\begin{split}
+    \frac{d}{dz}\sigma(z)
+    &= \frac{d}{dz}(1 + e^{-z})^{-1} \\
+    &= -(1 + e^{-z})^{-2} . -e^{-z} \\
+    &= \frac{1}{1 + e^{-z}} \frac{e^{-z} + 1 - 1}{1 + e^{-z}} \\
+    &= \frac{1}{1 + e^{-z}} \left(1 - \frac{1}{1 + e^{-z}}\right) \\
+    &= \sigma(z)(1 - \sigma(z))
+\end{split}
+\end{equation}
+
+\subsubsection*{Softmax}
+
+Let $\mathbf{s} = \textrm{softmax}(\mathbf{z})$ be the softmax function. Then
+\begin{equation}
+\begin{split}
+    \frac{\partial s_k}{\partial z_l}
+    &= \frac{\partial}{\partial z_l} \frac{e^{z_k}}{\sum_r e^{z_r}} \\
+    &= \frac{\delta_{k,l} e^{z_k} - e^{z_k}e^{z_l}}
+            {\left(\sum_r e^{z_r}\right)^2} \\
+    &=  s_k (\delta_{k,l} - s_l) \\
+\end{split}
+\end{equation}
+
+\subsection*{Scalar derivatives}
+
+\subsubsection*{Derivatives with respect to $\mathbf{y}$}
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial y_k}
+    = \frac{\partial}{\partial y_k} \sum_{r=1}^C - t_r \log y_r
+    = -\frac{t_k}{y_k}
+\end{equation}
+
+\subsubsection*{Derivatives with respect to $\mathbf{h}$}
+\begin{equation}
+\begin{split}
+    \frac{\partial y_k}{\partial h_j}
+    &= \sum_{r=1}^C \frac{\partial y_k}{\partial (\sum_{s=1}^H h_s V_{s,r} + d_r)}
+        \frac{\partial(\sum_{s=1}^H h_s V_{s,r} + d_r)}{\partial h_j} \\
+    &= \sum_{r=1}^C y_k(\delta_{k,r} - y_r) V_{j,r} \\
+    &= y_k V_{j,k} - y_k \sum_{r=1}^C y_r V_{j,r} \\
+\end{split}
+\end{equation}
+This means
+\begin{equation}
+\begin{split}
+    \frac{\partial \mathcal{L}}{\partial h_j}
+    &= \sum_{k=1}^C \frac{\partial \mathcal{L}}{\partial y_k}
+                    \frac{\partial y_k}{\partial h_j} \\
+    &= \sum_{k=1}^C -t_k \left(V_{j,k} - \sum_{r=1}^C y_r V_{j,r} \right) \\
+    &= \sum_{k=1}^C -t_k V_{j,k} +
+       \left[\sum_{k=1}^C t_k \right]\left[\sum_{r=1}^C y_r V_{j,r} \right] \\
+    &= \sum_{k=1}^C -t_k V_{j,k} +
+       \sum_{r=1}^C y_r V_{j,r} \quad \textrm{(because $\sum_k t_k
+       = 1$ by definition)}\\
+    &= \sum_{k=1}^C V_{j,k}(y_k - t_k) \\
+\end{split}
+\end{equation}
+
+\subsubsection*{Derivatives with respect to $\mathbf{V}$}
+\begin{equation}
+\begin{split}
+    \frac{\partial y_r}{\partial V_{j,k}}
+    &= \frac{\partial y_r}{\partial (\sum_{s=1}^H h_s V_{s,k} + d_k)}
+       \frac{\partial(\sum_{s=1}^H h_s V_{s,k} + d_k)}{\partial V_{j,k}} \\
+    &= y_r (\delta_{k,r} - y_k) h_j \\
+\end{split}
+\end{equation}
+This means
+\begin{equation}
+\begin{split}
+    \frac{\partial \mathcal{L}}{\partial V_{j,k}}
+    &= \sum_{r=1}^C \frac{\partial \mathcal{L}}{\partial y_r}
+                    \frac{\partial y_r}{\partial V_{j,k}} \\
+    &= \sum_{r=1}^C -t_r (\delta_{k,r} - y_k) h_j \\
+    &= \left[\sum_{r=1}^C t_r \right]y_k h_j - t_k h_j\\
+    &= (y_k - t_k)h_j \quad \textrm{(because $\sum_r t_r
+       = 1$ by definition)} \\
+\end{split}
+\end{equation}
+
+\subsubsection*{Derivatives with respect to $\mathbf{d}$}
+\begin{equation}
+\begin{split}
+    \frac{\partial y_r}{\partial d_k}
+    &= \frac{\partial y_r}{\partial (\sum_{s=1}^H h_s V_{s,k} + d_k)}
+       \frac{\partial(\sum_{s=1}^H h_s V_{s,k} + d_k)}{\partial d_k} \\
+    &= y_r (\delta_{k,r} - y_k) \\
+\end{split}
+\end{equation}
+This means
+\begin{equation}
+\begin{split}
+    \frac{\partial \mathcal{L}}{\partial d_k}
+    &= \sum_{r=1}^C \frac{\partial \mathcal{L}}{\partial y_r}
+                    \frac{\partial y_r}{\partial d_k} \\
+    &= \sum_{r=1}^C -t_r (\delta_{k,r} - y_k)\\
+    &= \left[\sum_{r=1}^C t_r \right]y_k - t_k \\
+    &= y_k - t_k \quad \textrm{(because $\sum_r t_r = 1$ by definition)} \\
+\end{split}
+\end{equation}
+
+\subsubsection*{Derivatives with respect to $\mathbf{W}$}
+\begin{equation}
+\begin{split}
+    \frac{\partial h_j}{\partial W_{i,j}}
+    &= \frac{\partial h_j}{\partial(\sum_{s=1}^A x_s W_{s,j} + b_j)}
+       \frac{\partial(\sum_{s=1}^A x_s W_{s,j} + b_j)}{\partial W_{i,j}} \\
+    &= h_j (1 - h_j) x_i \\
+\end{split}
+\end{equation}
+This means
+\begin{equation}
+\begin{split}
+    \frac{\partial \mathcal{L}}{\partial W_{i,j}}
+    &= \frac{\partial \mathcal{L}}{\partial h_j}
+       \frac{\partial h_j}{\partial W_{i,j}} \\
+    &= \sum_{k=1}^C V_{j,k}(y_k - t_k) h_j (1 - h_j) x_i \\
+\end{split}
+\end{equation}
+
+\subsubsection*{Derivatives with respect to $\mathbf{b}$}
+\begin{equation}
+\begin{split}
+    \frac{\partial h_j}{\partial b_j}
+    &= \frac{\partial h_j}{\partial(\sum_{s=1}^A x_s W_{s,j} + b_j)}
+       \frac{\partial(\sum_{s=1}^A x_s W_{s,j} + b_j)}{\partial b_j} \\
+    &= h_j (1 - h_j) \\
+\end{split}
+\end{equation}
+This means
+\begin{equation}
+\begin{split}
+    \frac{\partial \mathcal{L}}{\partial b_j}
+    &= \frac{\partial \mathcal{L}}{\partial h_j}
+       \frac{\partial h_j}{\partial b_j} \\
+    &= \sum_{k=1}^C V_{j,k}(y_k - t_k) h_j (1 - h_j) \\
+\end{split}
+\end{equation}
+
+\subsection*{Matrix and vector derivatives}
+
+From previous results, it is straightforward to verify that
+
+\begin{equation}
+\begin{split}
+    \frac{\partial \mathcal{L}}{\partial \mathbf{V}} &=
+        (\mathbf{y} - \mathbf{t})^T\mathbf{h}, \\
+    \frac{\partial \mathcal{L}}{\partial \mathbf{d}} &=
+        \mathbf{y} - \mathbf{t}, \\
+    \frac{\partial \mathcal{L}}{\partial \mathbf{W}} &=
+        \left[
+            (\mathbf{y} - \mathbf{t}) \mathbf{V}^T
+            \odot \mathbf{h} \odot (\mathbf{1} - \mathbf{h})
+        \right]^T \mathbf{x}, \\
+    \frac{\partial \mathcal{L}}{\partial \mathbf{b}} &=
+        (\mathbf{y} - \mathbf{t}) \mathbf{V}^T
+        \odot \mathbf{h} \odot (\mathbf{1} - \mathbf{h}) \\
+\end{split}
+\end{equation}
+
+\end{document}
