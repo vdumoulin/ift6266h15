@@ -134,13 +134,11 @@ def compute_analytical_gradients(X, T, W, b, V, d):
     Y = compute_Y(H, V, d)
 
     # Batch version of numpy.outer(h, y - t)
-    V_grad = (H[:, :, None] * (Y - T)[:, None, :]).mean(axis=0)
+    V_grad = numpy.dot(H.T, Y - T) / H.shape[0]
     # Batch version of y - t
     d_grad = (Y - T).mean(axis=0)
     # Batch version of numpy.outer(x, numpy.dot(y - t, V.T) * h * (1 - h))
-    W_grad = (
-        X[:, :, None] * (numpy.dot(Y - T, V.T) * H * (1 - H))[:, None, :]
-    ).mean(axis=0)
+    W_grad = numpy.dot(X.T, numpy.dot(Y - T, V.T) * H * (1 - H)) / X.shape[0]
     # Batch version of numpy.dot(y - t, V.T) * h * (1 - h)
     b_grad = (numpy.dot(Y - T, V.T) * H * (1 - H)).mean(axis=0)
 
