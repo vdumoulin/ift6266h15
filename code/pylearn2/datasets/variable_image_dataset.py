@@ -63,6 +63,7 @@ class VariableImageDataset(Dataset):
         # self.adjust_for_viewer, amongst other things.
         if not numpy.all(x >= 0 and x <= 1 for x in self.X.iterrows()):
             raise ValueError("features must be normalized between 0 and 1")
+        self.axes = axes
         self.num_examples = self.X.shape[0]
         self.s = getattr(node, s_str)
         self.y = getattr(node, y_str) if y_str is not None else None
@@ -139,13 +140,22 @@ class VariableImageDataset(Dataset):
         """
         self._validate_source(source)
         rval = []
+        single_axes = [a for a in self.axes if a != 'b']
         for so in source:
             if so == 'features':
                 images = self.X[indexes]
                 shapes = self.s[indexes]
-                rval.append(numpy.vstack(
-                    [self.transformer(img.reshape(s))[None, ...]
-                     for img, s in safe_izip(images, shapes)]))
+                b01c_images = [
+                    img.reshape(s).transpose(
+                        [single_axes.index(a) for a in (0, 1, 'c')])
+                    for img, s in safe_izip(images, shapes)]
+                b01c_preprocessed_images = [self.transformer(img) for
+                                            img in b01c_images]
+                preprocessed_images = [
+                    img.transpose([(0, 1, 'c').index(a) for a in single_axes])
+                    for img in b01c_preprocessed_images]
+                rval.append(numpy.vstack([img[None, ...] for img in
+                                          preprocessed_images]))
             elif so == 'targets':
                 rval.append(self.y[indexes])
         return tuple(rval)
@@ -221,6 +231,10 @@ class VariableImageDataset(Dataset):
 class BaseImageTransformer(object):
     """
     An object that preprocesses an image on-the-fly
+
+    Notes
+    -----
+    Images are expected to be in ('b', 0, 1, 'c') format.
     """
     def get_shape(self):
         """
