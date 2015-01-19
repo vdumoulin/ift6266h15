@@ -243,14 +243,14 @@ From previous results, it is straightforward to verify that
 \begin{equation}
 \begin{split}
     \frac{\partial \mathcal{L}}{\partial \mathbf{V}} &=
-        (\mathbf{y} - \mathbf{t})^T\mathbf{h}, \\
+        \mathbf{h}^T(\mathbf{y} - \mathbf{t}), \\
     \frac{\partial \mathcal{L}}{\partial \mathbf{d}} &=
         \mathbf{y} - \mathbf{t}, \\
     \frac{\partial \mathcal{L}}{\partial \mathbf{W}} &=
-        \left[
+        \mathbf{x}^T \left[
             (\mathbf{y} - \mathbf{t}) \mathbf{V}^T
             \odot \mathbf{h} \odot (\mathbf{1} - \mathbf{h})
-        \right]^T \mathbf{x}, \\
+        \right], \\
     \frac{\partial \mathcal{L}}{\partial \mathbf{b}} &=
         (\mathbf{y} - \mathbf{t}) \mathbf{V}^T
         \odot \mathbf{h} \odot (\mathbf{1} - \mathbf{h}) \\
