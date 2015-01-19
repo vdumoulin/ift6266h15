@@ -154,8 +154,11 @@ class VariableImageDataset(Dataset):
                 preprocessed_images = [
                     img.transpose([(0, 1, 'c').index(a) for a in single_axes])
                     for img in b01c_preprocessed_images]
-                rval.append(numpy.vstack([img[None, ...] for img in
-                                          preprocessed_images]))
+                rval.append(
+                    numpy.vstack(
+                        [img[None, ...] for img in preprocessed_images]
+                    ).transpose([self.axes.index(a) for a in
+                                  ['b'] + single_axes]))
             elif so == 'targets':
                 rval.append(self.y[indexes])
         return tuple(rval)
