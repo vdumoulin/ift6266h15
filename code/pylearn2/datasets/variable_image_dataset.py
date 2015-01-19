@@ -394,12 +394,11 @@ class VariableImageDatasetIterator(object):
 
 
 if __name__ == "__main__":
-    dataset = VariableImageDataset(path='dummy.h5', data_node='Data',
-                                   transformer=RandomCrop(20, 15),
-                                   X_str='X', y_str='y', s_str='s')
-    it = dataset.iterator(mode='random_slice',
-                          data_specs=(VectorSpace(dim=675), 'features'),
-                          batch_size=10,
-                          num_batches=10)
-    for X in it:
-        print X.shape
+    dataset = VariableImageDataset(
+        path='${PYLEARN2_DATA_PATH}/dogs_vs_cats/train.h5',
+        data_node='Data',
+        transformer=RandomCrop(256, 221),
+        X_str='X', y_str='y', s_str='s')
+    it = dataset.iterator(mode='random_slice', batch_size=10, num_batches=10)
+    for X, y in it:
+        print X.shape, y.shape
