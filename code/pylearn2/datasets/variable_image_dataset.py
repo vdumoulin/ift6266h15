@@ -51,7 +51,7 @@ class VariableImageDataset(Dataset):
     _default_seed = 2015 + 1 + 17
 
     def __init__(self, path, data_node, transformer, X_str, s_str, y_str=None,
-                 y_labels=None, axes=('b', 0, 1, 'c'), rng=_default_seed):
+                 y_labels=None, start=0, stop=None, axes=('b', 0, 1, 'c'), rng=_default_seed):
         path = preprocess(path)
         self.h5file = tables.openFile(path, mode="r")
         node = self.h5file.getNode('/', data_node)
@@ -64,7 +64,6 @@ class VariableImageDataset(Dataset):
         if not numpy.all(x >= 0 and x <= 1 for x in self.X.iterrows()):
             raise ValueError("features must be normalized between 0 and 1")
         self.axes = axes
-        self.num_examples = self.X.shape[0]
         self.s = getattr(node, s_str)
         self.y = getattr(node, y_str) if y_str is not None else None
 
@@ -99,6 +98,14 @@ class VariableImageDataset(Dataset):
         self._iter_mode = resolve_iterator_class(
             'batchwise_shuffled_sequential')
         self._iter_data_specs = self.data_specs
+
+        self.start = start
+        self.stop = self.X.shape[0] if stop is None else stop
+        assert (self.start >= 0 and
+                self.start < self.stop and
+                self.stop <= self.X.shape[0])
+        self.num_examples = self.stop - self.start
+
 
     def _validate_source(self, source):
         """
@@ -138,6 +145,9 @@ class VariableImageDataset(Dataset):
         indexes : slice
             Examples to fetch
         """
+        assert type(indexes) is slice
+        indexes = slice(indexes.start + self.start, indexes.stop + self.start,
+                        indexes.step)
         self._validate_source(source)
         rval = []
         single_axes = [a for a in self.axes if a != 'b']
@@ -228,7 +238,7 @@ class VariableImageDataset(Dataset):
 
     @wraps(Dataset.get_num_examples)
     def get_num_examples(self):
-        raise NotImplementedError()
+        return self.num_examples
 
 
 class BaseImageTransformer(object):
@@ -415,7 +425,8 @@ if __name__ == "__main__":
         path='${PYLEARN2_DATA_PATH}/dogs_vs_cats/train.h5',
         data_node='Data',
         transformer=RandomCrop(256, 221),
-        X_str='X', y_str='y', s_str='s')
+        X_str='X', y_str='y', s_str='s',
+        start=0, stop=20000)
     it = dataset.iterator(mode='random_slice', batch_size=10, num_batches=10)
     for X, y in it:
         print X.shape, y.shape
