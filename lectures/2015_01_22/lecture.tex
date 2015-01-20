@@ -1,0 +1,79 @@
+%==============================================================================
+% PREAMBLE
+%==============================================================================
+\documentclass[mathserif, xcolor=dvipsnames]{beamer}
+% \usepackage{helvet}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amsfonts,amsthm}
+\usepackage{url}
+\usepackage{courier}
+\usepackage{listings}
+\usepackage{color}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\lstset{basicstyle=\footnotesize\ttfamily,language=Python,commentstyle=\color{mygray}}
+
+\usetheme[height=10mm]{Rochester}
+\usecolortheme[named=MidnightBlue]{structure}
+\setbeamertemplate{navigation symbols}{}
+
+\title{Second tutorial session}
+\author{Vincent Dumoulin}
+\date{January 22, 2015}
+
+%==============================================================================
+% BODY
+%==============================================================================
+\begin{document}
+
+%------------------------------------------------------------------------------
+% TITLE
+%------------------------------------------------------------------------------
+\begin{frame}[plain]
+    \titlepage
+\end{frame}
+
+%------------------------------------------------------------------------------
+% Outline
+%------------------------------------------------------------------------------
+\begin{frame}
+    \frametitle{Outline}
+    \begin{enumerate}\addtolength{\itemsep}{1.5\baselineskip}
+        \item{Pylearn2 overview}
+        \item{Porting numpy + MNIST + MLP to Pylearn2}
+        \item{Writing a new model in Pylearn2}
+    \end{enumerate}
+\end{frame}
+
+%------------------------------------------------------------------------------
+% Pylearn2 overview
+%------------------------------------------------------------------------------
+\begin{frame}
+    \frametitle{Pylearn2 overview}
+
+    \begin{block}{Setup}
+    \begin{align*}
+        \mathbf{x} &= [x_1, \cdots, x_A]^T,
+        &\mathbf{t} &= [t_1, \cdots, x_C]^T, \\
+        \mathbf{W} &= \begin{pmatrix}
+            W_{1,1} & \cdots & W_{1,A} \\
+            \cdots  & \cdots & \cdots  \\
+            W_{H,1} & \cdots & W_{H,A} \\
+        \end{pmatrix},
+        &\mathbf{b} &= [b_1, \cdots, b_H]^T, \\
+        \mathbf{V} &= \begin{pmatrix}
+            V_{1,1} & \cdots & V_{1,H} \\
+            \cdots  & \cdots & \cdots  \\
+            V_{C,1} & \cdots & V_{C,H} \\
+        \end{pmatrix},
+        &\mathbf{c} &= [c_1, \cdots, c_C]^T, \\
+        \mathbf{h} &= \sigma(\mathbf{W}\mathbf{x} + \mathbf{b}),
+        &\mathbf{y} &= \textrm{softmax}(\mathbf{V}\mathbf{h} + \mathbf{c})
+    \end{align*}
+
+    \begin{equation*}
+        \mathcal{L} = -\mathbf{t}^T \log \mathbf{y}
+    \end{equation*}
+    \end{block}
+\end{frame}
+
+\end{document}
