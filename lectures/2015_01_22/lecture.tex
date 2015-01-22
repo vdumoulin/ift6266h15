@@ -284,7 +284,7 @@ train.main_loop()
 from pylearn2.costs.cost import Cost, DefaultDataSpecsMixin
 
 
-class MyCostSubclass(Cost, DefaultDataSpecsMixin):
+class MyCostSubclass(DefaultDataSpecsMixin, Cost):
     # Here it is assumed that we are doing supervised learning
     supervised = True
 
