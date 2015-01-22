@@ -49,15 +49,16 @@
     \begin{enumerate}\addtolength{\itemsep}{1.5\baselineskip}
         \item{Pylearn2 introduction}
         \item{Porting numpy + MNIST + MLP to Pylearn2}
+        \item{Useful scripts in Pylearn2}
         \item{Writing a new model in Pylearn2}
     \end{enumerate}
 \end{frame}
 
 %------------------------------------------------------------------------------
-% Pylearn2 overview
+% Pylearn2 introduction
 %------------------------------------------------------------------------------
 \begin{frame}
-    \frametitle{Pylearn2 overview}
+    \frametitle{Pylearn2 introduction}
 
     \begin{block}{What is Pylearn2?}
     \begin{itemize}
@@ -218,6 +219,21 @@ train.main_loop()
     \begin{alertblock}{Best way to know your way around Pylearn2}
     \url{http://deeplearning.net/software/pylearn2/library/index.html#libdoc}
     \end{alertblock}
+\end{frame}
+
+%------------------------------------------------------------------------------
+% Useful scripts in Pylearn2
+%------------------------------------------------------------------------------
+\begin{frame}[fragile]
+    \frametitle{Useful scripts in Pylearn2}
+
+    \begin{block}{\emph{Some} of the many handy scripts}
+    \begin{itemize}
+        \item{\texttt{pylearn2.scripts.plot\_monitor.py}}
+        \item{\texttt{pylearn2.scripts.print\_monitor.py}}
+        \item{\texttt{pylearn2.scripts.show\_weights.py}}
+    \end{itemize}
+    \end{block}
 \end{frame}
 
 %------------------------------------------------------------------------------
@@ -481,6 +497,20 @@ class MLP(Model):
     \begin{alertblock}{An online tutorial can be found here}
         \url{http://deeplearning.net/software/pylearn2/theano_to_pylearn2_tutorial.html#theano-to-pylearn2-tutorial}
     \end{alertblock}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Writing a new model in Pylearn2}
+
+    \begin{block}{Bottom line}
+    \begin{itemize}\addtolength{\itemsep}{0.5\baselineskip}
+        \item{Monolithic blocks of Theano code are OK as a starting point}
+        \item{Flexibility and modularity can be incorporated progressively}
+        \item{Nobody's expected to know Pylearn2 from A to Z (even me)}
+        \item{Reading the library documentation is a good way to know how to
+              reuse existing code (\emph{e.g.} \texttt{Layer} subclasses)}
+    \end{itemize}
+    \end{block}
 \end{frame}
 
 \end{document}
