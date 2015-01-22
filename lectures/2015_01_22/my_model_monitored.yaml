@@ -1,0 +1,33 @@
+!obj:pylearn2.train.Train {
+    dataset: &train !obj:pylearn2.datasets.dense_design_matrix.DenseDesignMatrix {
+        X: !pkl: 'mnist_train_X.npy',
+        y: !pkl: 'mnist_train_y.npy',
+        y_labels: 10,
+    },
+    model: !obj:my_model_monitored.MLP {
+        nvis: 784,
+        nhid: 500,
+        nclasses: 10,
+    },
+    algorithm: !obj:pylearn2.training_algorithms.sgd.SGD {
+        batch_size: 100,
+        learning_rate: 1e-2,
+        monitoring_dataset: {
+            'train' : *train,
+            'valid' : !obj:pylearn2.datasets.dense_design_matrix.DenseDesignMatrix {
+                X: !pkl: 'mnist_valid_X.npy',
+                y: !pkl: 'mnist_valid_y.npy',
+                y_labels: 10,
+            },
+            'test' : !obj:pylearn2.datasets.dense_design_matrix.DenseDesignMatrix {
+                X: !pkl: 'mnist_test_X.npy',
+                y: !pkl: 'mnist_test_y.npy',
+                y_labels: 10,
+            },
+        },
+        cost: !obj:my_model_monitored.MLPCost {},
+        termination_criterion: !obj:pylearn2.termination_criteria.EpochCounter {
+            max_epochs: 15
+        },
+    },
+}
