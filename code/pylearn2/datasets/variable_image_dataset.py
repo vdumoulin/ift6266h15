@@ -52,7 +52,8 @@ class VariableImageDataset(Dataset):
     _default_seed = 2015 + 1 + 17
 
     def __init__(self, path, data_node, transformer, X_str, s_str, y_str=None,
-                 y_labels=None, start=0, stop=None, axes=('b', 0, 1, 'c'), rng=_default_seed):
+                 y_labels=None, start=0, stop=None, axes=('b', 0, 1, 'c'),
+                 rng=_default_seed):
         # Locally cache the files before reading them
         path = preprocess(path)
         datasetCache = cache.datasetCache
@@ -173,7 +174,7 @@ class VariableImageDataset(Dataset):
                     numpy.vstack(
                         [img[None, ...] for img in preprocessed_images]
                     ).transpose([self.axes.index(a) for a in
-                                  ['b'] + single_axes]))
+                                 ['b'] + single_axes]))
             elif so == 'targets':
                 rval.append(self.y[indexes])
         return tuple(rval)
