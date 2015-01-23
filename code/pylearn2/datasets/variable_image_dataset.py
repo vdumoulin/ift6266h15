@@ -16,6 +16,7 @@ from pylearn2.space import VectorSpace, IndexSpace, Conv2DSpace, CompositeSpace
 from pylearn2.utils import safe_izip, wraps
 from pylearn2.utils.string_utils import preprocess
 from pylearn2.utils.rng import make_np_rng
+from pylearn2.datasets import cache
 from pylearn2.datasets.dataset import Dataset
 
 
@@ -52,7 +53,11 @@ class VariableImageDataset(Dataset):
 
     def __init__(self, path, data_node, transformer, X_str, s_str, y_str=None,
                  y_labels=None, start=0, stop=None, axes=('b', 0, 1, 'c'), rng=_default_seed):
+        # Locally cache the files before reading them
         path = preprocess(path)
+        datasetCache = cache.datasetCache
+        path = datasetCache.cache_file(path)
+
         self.h5file = tables.openFile(path, mode="r")
         node = self.h5file.getNode('/', data_node)
 
