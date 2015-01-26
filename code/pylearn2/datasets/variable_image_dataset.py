@@ -7,6 +7,7 @@ __credits__ = ["Vincent Dumoulin"]
 __license__ = "3-clause BSD"
 __maintainer__ = "Vincent Dumoulin"
 
+import os
 import numpy
 import tables
 from scipy import misc
@@ -272,6 +273,41 @@ class VariableImageDataset(Dataset):
         return self.num_examples
 
 
+class DogsVsCats(VariableImageDataset):
+    """
+    An HDF5 dataset for the Dogs vs. Cats dataset
+
+    Parameters
+    ----------
+    transformer : BaseTransformer
+        Object that applies on-the-fly preprocessing to examples in the dataset
+    start : int, optional
+        Starting index of the data being used. Defaults to 0.
+    stop : int, optional
+        Stopping index (exclusive) of the data being used. Defaults to None,
+        meaning 'up to the end'.
+    rng : int or rng, optional
+        RNG or seed for an RNG. Defaults to some default seed value.
+    """
+    _default_seed = 2015 + 1 + 26
+
+    def __init__(self, transformer, start=0, stop=None, rng=_default_seed):
+        super(DogsVsCats, self).__init__(
+            path=os.path.join(
+                '${PYLEARN2_DATA_PATH}', 'dogs_vs_cats', 'train.h5'),
+            data_node='Data',
+            transformer=transformer,
+            X_str='X',
+            s_str='s',
+            y_str='y',
+            y_labels=2,
+            start=start,
+            stop=stop,
+            axes=('b', 0, 1, 'c'),
+            rescale=256.0,
+            rng=rng)
+
+
 class BaseImageTransformer(object):
     """
     An object that preprocesses an image on-the-fly
@@ -452,12 +488,8 @@ class VariableImageDatasetIterator(object):
 
 
 if __name__ == "__main__":
-    dataset = VariableImageDataset(
-        path='${PYLEARN2_DATA_PATH}/dogs_vs_cats/train.h5',
-        data_node='Data',
-        transformer=RandomCrop(256, 221),
-        X_str='X', y_str='y', s_str='s',
-        start=0, stop=20000)
+    dataset = DogsVsCats(transformer=RandomCrop(256, 221),
+                         start=0, stop=20000)
     it = dataset.iterator(mode='random_slice', batch_size=10, num_batches=10)
     for X, y in it:
         print X.shape, y.shape
