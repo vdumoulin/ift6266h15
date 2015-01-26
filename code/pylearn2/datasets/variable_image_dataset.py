@@ -43,6 +43,11 @@ class VariableImageDataset(Dataset):
     y_labels : int
         Number of classes. Defaults to 'None', meaning targets are not
         categorical data.
+    start : int, optional
+        Starting index of the data being used. Defaults to 0.
+    stop : int, optional
+        Stopping index (exclusive) of the data being used. Defaults to None,
+        meaning 'up to the end'.
     axes : tuple, optional
         Ordering of the axes. Must be a ('b', 0, 1, 'c') permutation. Defaults
         to ('b', 0, 1, 'c').
