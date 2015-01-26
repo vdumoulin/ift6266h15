@@ -46,6 +46,9 @@ class VariableImageDataset(Dataset):
     axes : tuple, optional
         Ordering of the axes. Must be a ('b', 0, 1, 'c') permutation. Defaults
         to ('b', 0, 1, 'c').
+    rescale : float, optional
+        Divide pixel intensities by this number. Defaults to None, which does
+        nothing.
     rng : int or rng, optional
         RNG or seed for an RNG. Defaults to some default seed value.
     """
@@ -53,7 +56,7 @@ class VariableImageDataset(Dataset):
 
     def __init__(self, path, data_node, transformer, X_str, s_str, y_str=None,
                  y_labels=None, start=0, stop=None, axes=('b', 0, 1, 'c'),
-                 rng=_default_seed):
+                 rescale=None, rng=_default_seed):
         # Locally cache the files before reading them
         path = preprocess(path)
         datasetCache = cache.datasetCache
@@ -61,6 +64,8 @@ class VariableImageDataset(Dataset):
 
         self.h5file = tables.openFile(path, mode="r")
         node = self.h5file.getNode('/', data_node)
+
+        self.rescale = float(rescale)
 
         self.rng = make_np_rng(rng, which_method="random_integers")
 
@@ -112,6 +117,9 @@ class VariableImageDataset(Dataset):
                 self.stop <= self.X.shape[0])
         self.num_examples = self.stop - self.start
 
+        # Data buffers
+        self.X_buffer = None
+        self.y_buffer = None
 
     def _validate_source(self, source):
         """
@@ -152,30 +160,42 @@ class VariableImageDataset(Dataset):
             Examples to fetch
         """
         assert type(indexes) is slice
+        # Translate indexes to stay in the [start, stop] range
         indexes = slice(indexes.start + self.start, indexes.stop + self.start,
                         indexes.step)
+        # Make sure that requested sources are provided by the dataset
         self._validate_source(source)
+
         rval = []
+        # Axes for a single example
         single_axes = [a for a in self.axes if a != 'b']
         for so in source:
             if so == 'features':
                 images = self.X[indexes]
                 shapes = self.s[indexes]
-                b01c_images = [
-                    img.reshape(s).transpose(
+                space = self.data_specs[0].components[0]
+                # If batch size has changed, reallocate a buffer
+                if self.X_buffer is None or len(self.X_buffer) != len(images):
+                    self.X_buffer = space.get_origin_batch(len(images))
+                for i, (img, s) in enumerate(safe_izip(images, shapes)):
+                    # Transpose image in 'b01c' format to comply with
+                    # transformer interface
+                    b01c = img.reshape(s).transpose(
                         [single_axes.index(a) for a in (0, 1, 'c')])
-                    for img, s in safe_izip(images, shapes)]
-                b01c_preprocessed_images = [self.transformer(img) for
-                                            img in b01c_images]
-                preprocessed_images = [
-                    img.transpose([(0, 1, 'c').index(a) for a in single_axes])
-                    for img in b01c_preprocessed_images]
-                rval.append(
-                    numpy.vstack(
-                        [img[None, ...] for img in preprocessed_images]
-                    ).transpose([self.axes.index(a) for a in
-                                 ['b'] + single_axes]))
+                    # Assign i'th example in the batch with the preprocessed
+                    # image
+                    self.X_buffer.transpose(
+                        [('b', 0, 1, 'c').index(a) for a in self.axes]
+                    )[i] = self.transformer(b01c)
+                if self.rescale is not None:
+                    self.X_buffer /= self.rescale
+                rval.append(self.X_buffer)
             elif so == 'targets':
+                targets = self.y[indexes]
+                space = self.data_specs[0].components[1]
+                # If batch size has changed, reallocate a buffer
+                if self.y_buffer is None or len(self.y_buffer) != len(targets):
+                    self.y_buffer = space.get_origin_batch(len(targets))
                 rval.append(self.y[indexes])
         return tuple(rval)
 
