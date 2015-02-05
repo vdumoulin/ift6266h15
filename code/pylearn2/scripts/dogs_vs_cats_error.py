@@ -1,6 +1,14 @@
 """
 Computes error rates on the unofficial train/valid/test split of the Dogs vs.
-Cats train set
+Cats train set.
+
+usage: dogs_vs_cats_error.py [-h] model_path
+
+positional arguments:
+  model_path  path to the pickled model
+
+optional arguments:
+  -h, --help  show this help message and exit
 """
 __authors__ = "Vincent Dumoulin"
 __copyright__ = "Copyright 2015, Universite de Montreal"
